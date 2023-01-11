@@ -9,6 +9,7 @@ minetest.register_privilege("organisateur", {
     give_to_admin = true
 })
 minetest.unregister_chatcommand("killme")
+minetest.unregister_chatcommand("me")
 minetest.register_on_joinplayer(function(player)
 	local has, missing = minetest.check_player_privs(player:get_player_name(), {
         organisateur = true})
