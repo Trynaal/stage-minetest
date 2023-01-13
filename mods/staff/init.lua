@@ -43,6 +43,28 @@ minetest.register_on_punchplayer(function(player, hitter, time_from_last_punch, 
         return true
     end
 end)
+local function display_message_formspec(player)
+    local formspec = "size[6,2]" ..
+                    "label[0,0;*** Cette séance est terminée ! \nSi vous voulez jouer, venez sur mon serveur nommé francium ***]" ..
+                    "button_exit[2,1;2,1;ok;OK]"
+    for _, toname in pairs(joueurs) do
+		minetest.show_formspec(toname, "staff:finish_message", formspec)
+    end
+    
+end
+
+minetest.register_chatcommand("finish", {
+    params = "<message>",
+    description = "Affiche un message en gros",
+    func = function(player_name, message)
+        local player = minetest.get_player_by_name(player_name)
+        if not player then
+            return false, "Joueur introuvable"
+        end
+        display_message_formspec(player)
+    end
+})
+
 minetest.register_chatcommand("mute", {
     privs = {
         organisateur = true,
