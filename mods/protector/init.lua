@@ -503,7 +503,7 @@ minetest.register_node("protector:protect", {
 
 		local meta = minetest.get_meta(pos)
 
-		meta:set_string("owner", placer:get_player_name() or "")
+		meta:set_string("owner", placer:get_player_name() or "Stage")
 		meta:set_string("members", "")
 		meta:set_string("infotext",
 				S("Protection (owned by @1)", meta:get_string("owner")))
@@ -543,8 +543,8 @@ minetest.register_node("protector:protect", {
 	end,
 
 	can_dig = function(pos, player)
-
-		return player and protector.can_dig(1, pos, player:get_player_name(), true, 1)
+		
+		--return player and protector.can_dig(1, pos, player:get_player_name(), true, 1)
 	end,
 
 	on_blast = function() end,
