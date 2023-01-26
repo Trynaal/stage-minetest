@@ -1,5 +1,6 @@
 local organisateurs = {}
 local joueurs = {}
+local team = {}
 local mute = false
 local fly = false
 local build = false
@@ -17,11 +18,19 @@ minetest.register_on_joinplayer(function(player)
         if has then
             local name = player:get_player_name()
 	    player:set_nametag_attributes({
-		text = name.."\n*Organisateur*",
+		text = name.."\n=Organisateur=",
 		color = "#FF0000",
 	    })
 	    table.insert(organisateurs, player:get_player_name())
         else
+		local pl_team = player:get_attribute("team")
+		if pl_team then
+			local name = player:get_player_name()
+	    		player:set_nametag_attributes({
+				text = name.."\n-Equipe "..pl_team.."-",
+				color = "#00FFFF",
+	    		})
+		end
         	table.insert(joueurs, player:get_player_name())
 		--[[local privs = minetest.get_player_privs(player:get_player_name())
   		privs.fly = nil
@@ -86,6 +95,53 @@ minetest.register_chatcommand("mute", {
 		return true, "[Stage] Vous devez utiliser la commande en faisant /mute on ou /mute off"
 	end
         return true, ""
+    end,
+})
+minetest.register_chatcommand("setteam", {
+    privs = {
+        organisateur = true,
+    },
+    func = function(name, param)
+	local player, color = string.match(param, "^(%S+)%s(%S+)$")
+	if player and color then
+		minetest.chat_send_player(player, minetest.colorize("#FF0000", "[Stage] Vous êtes maintenant dans l'équipe " .. color .. "."))
+		local pl = minetest.get_player_by_name(player)
+		pl:set_nametag_attributes({
+			text = player.."\n-Equipe "..color.."-",
+			color = "#00FFFF",
+	    	})
+		pl:set_attribute("team", color)
+	else
+		if param then
+			minetest.chat_send_player(param, minetest.colorize("#FF0000", "[Stage] Vous n'êtes plus dans une équipe."))
+			local pl = minetest.get_player_by_name(param)
+			pl:set_nametag_attributes({
+				text = player,
+				color = "#FFFFFF",
+	    		})
+			pl:set_attribute("team", nil)
+		else
+			minetest.chat_send_player(name, "[Stage] Erreur : vous devez fournir un ou deux arguments")
+		end
+	end
+    end,
+})
+minetest.register_chatcommand("getteam", {
+    privs = {
+        organisateur = true,
+    },
+    func = function(name, param)
+	if param then
+		local pl = minetest.get_player_by_name(param)
+		local pl_team = pl:get_attribute("team")
+		if pl_team then
+			minetest.chat_send_player(name, "[Stage] Le joueur " .. param .. " est dans l'équipe " .. pl_team .. ".")
+		else
+			minetest.chat_send_player(name, "[Stage] Le joueur " .. param .. " est dans aucune équipe.")
+		end
+	else
+		minetest.chat_send_player(name, "[Stage] Erreur : vous devez fournir un arguments")
+	end
     end,
 })
 minetest.register_chatcommand("fly", {
