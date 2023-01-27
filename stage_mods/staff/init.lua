@@ -1,6 +1,7 @@
 local organisateurs = {}
 local joueurs = {}
 local team = {}
+vanished = {}
 local mute = false
 local fly = false
 local build = false
@@ -221,7 +222,7 @@ end)
 minetest.register_on_leaveplayer(function(player)
 	local has, missing = minetest.check_player_privs(player:get_player_name(), {
         organisateur = true})
-
+	local name = player:get_player_name()
         if has then
 	    	local name = player:get_player_name()
 	    	local idx = table.indexof(organisateurs, name)
@@ -235,6 +236,11 @@ minetest.register_on_leaveplayer(function(player)
 			table.remove(joueurs, idx)
 		end
         end
+	local name = player:get_player_name()
+
+	if vanished[name] then
+		vanished[name] = nil
+	end
 end)
 
 local old_node_dig = minetest.node_dig
@@ -268,3 +274,97 @@ function minetest.item_place(itemstack, placer, pointed_thing)
 		end
 	--end
 end
+
+-- Vanish command
+vanish = function(player, toggle)
+
+	if not player then return false end
+
+	local name = player:get_player_name()
+
+	vanished[name] = toggle
+
+	local prop
+
+	if toggle == true then
+
+		-- hide player and name tag
+		prop = {
+			visual_size = {x = 0, y = 0},
+		}
+
+		player:set_nametag_attributes({
+			color = {a = 0, r = 255, g = 255, b = 255}
+		})
+	else
+		-- show player and tag
+		prop = {
+			visual_size = {x = 1, y = 1},
+		}
+
+		player:set_nametag_attributes({
+		text = name.."\n=Organisateur=",
+		color = "#FF0000",
+	    })
+	end
+
+	player:set_properties(prop)
+
+end
+
+
+minetest.register_chatcommand("vanish", {
+	params = "<name>",
+	description = "Make player invisible",
+	privs = {organisateur = true},
+
+	func = function(name, param)
+
+		local player = minetest.get_player_by_name(name)
+
+		if vanished[name] then
+
+			vanish(player, nil)
+		else
+			vanish(player, true)
+		end
+
+	end
+})
+minetest.register_chatcommand("rtp", {
+    params = "",
+    description = "",
+    privs = {organisateur=true},
+    func = function(name, param)
+        local player = minetest.get_player_by_name(name)
+        if not player then
+            return
+        end
+        local pos = player:getpos()
+	local tppos = {}
+        tppos.x = math.random(1, 30000)
+        tppos.y = math.random(1, 10)
+        tppos.z = math.random(1, 30000)
+        player:setpos(tppos)
+    end,
+})
+minetest.register_chatcommand("pbuild", {
+    params = "",
+    description = "",
+    privs = {organisateur=true},
+    func = function(name, param)
+        local player = minetest.get_player_by_name(name)
+        if not player then
+            return
+        end
+        local pos = player:getpos()
+        for i = -22, 22 do
+            for j = -22, 22 do
+                for k = -22, 22 do
+                    minetest.remove_node({x=pos.x+i, y=pos.y+j, z=pos.z+k})
+                end
+            end
+        end
+	minetest.set_node(pos, {name="protector:protect"})
+    end,
+})
